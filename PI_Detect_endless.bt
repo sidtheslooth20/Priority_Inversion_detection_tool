@@ -1,0 +1,24 @@
+BEGIN
+{
+	@number = 0;
+	@timesumm = 0;
+	@times=nsecs;
+}
+
+tracepoint:sched:sched_switch
+{
+	if((args->prev_state & 2) && (args->prev_prio > args->next_prio))
+	{
+		@number += 1;
+		@timesumm+=(nsecs-@times);
+		@info[args->prev_pid, args->prev_comm, args->prev_prio, args->next_pid, args->next_comm, args->next_prio,nsecs-@times] = count();
+		
+	}
+	@times = nsecs;
+}
+
+END
+{
+	printf("%6s %16s %3s %6s %16s %3s %8s\n", "PID", "NAME", "PRI", "PID", "NAME", "PRI", "TIME");
+	printa("%6d %16s %3d %6d %16s %3d %8lld\n",);
+}
